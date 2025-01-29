@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tap Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        button {
+            padding: 15px 30px;
+            font-size: 20px;
+            cursor: pointer;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Тапалка</h1>
+    <p>Нажми на кнопку, чтобы увеличить счет:</p>
+    <button id="tapButton">Тап!</button>
+    <p>Счет: <span id="score">0</span></p>
+    <button id="sendScoreButton">Отправить счет</button>
+
+    <script>
+        // Инициализация Web App
+        Telegram.WebApp.ready();
+
+        let score = 0;
+
+        // Обработчик нажатия на кнопку
+        document.getElementById('tapButton').addEventListener('click', () => {
+            score += 1;
+            document.getElementById('score').textContent = score;
+        });
+
+        // Отправить счет в чат
+        document.getElementById('sendScoreButton').addEventListener('click', () => {
+            Telegram.WebApp.sendData(JSON.stringify({ score: score }));
+            Telegram.WebApp.close();
+        });
+    </script>
+</body>
+</html>
