@@ -9,12 +9,48 @@
             font-family: Arial, sans-serif;
             text-align: center;
             padding: 20px;
+            background-color: #f0f0f0;
+            margin: 0;
+            overflow: hidden;
+        }
+        h1 {
+            color: #333;
         }
         button {
             padding: 15px 30px;
             font-size: 20px;
             cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
             margin: 10px;
+            transition: transform 0.1s ease;
+        }
+        button:active {
+            transform: scale(0.95);
+        }
+        p {
+            font-size: 18px;
+            color: #555;
+        }
+        @keyframes tapAnimation {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .tap-effect {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: rgba(255, 0, 0, 0.7);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: tapEffect 0.5s ease-out;
+        }
+        @keyframes tapEffect {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
         }
     </style>
 </head>
@@ -25,23 +61,65 @@
     <p>Счет: <span id="score">0</span></p>
     <button id="sendScoreButton">Отправить счет</button>
 
+    <!-- Аудио для звуковых эффектов -->
+    <audio id="tapSound" src="https://assets.mixkit.co/active_storage/sfx/2317/2317-preview.mp3"></audio>
+    <audio id="sendSound" src="https://assets.mixkit.co/active_storage/sfx/2416/2416-preview.mp3"></audio>
+
     <script>
-        // Инициализация Web App
+        // Инициализация Telegram Web App
         Telegram.WebApp.ready();
 
         let score = 0;
 
-        // Обработчик нажатия на кнопку
-        document.getElementById('tapButton').addEventListener('click', () => {
+        // Обработчик нажатия на кнопку "Тап!"
+        document.getElementById('tapButton').addEventListener('click', (event) => {
             score += 1;
             document.getElementById('score').textContent = score;
+
+            // Воспроизведение звука
+            const tapSound = document.getElementById('tapSound');
+            tapSound.currentTime = 0; // Перемотка звука в начало
+            tapSound.play();
+
+            // Анимация кнопки
+            event.target.style.animation = 'tapAnimation 0.1s ease';
+
+            // Эффект при нажатии
+            createTapEffect(event.clientX, event.clientY);
         });
 
-        // Отправить счет в чат
+        // Обработчик нажатия на кнопку "Отправить счет"
         document.getElementById('sendScoreButton').addEventListener('click', () => {
+            // Воспроизведение звука
+            const sendSound = document.getElementById('sendSound');
+            sendSound.currentTime = 0; // Перемотка звука в начало
+            sendSound.play();
+
+            // Отправляем данные в Telegram
             Telegram.WebApp.sendData(JSON.stringify({ score: score }));
+            // Закрываем Mini App
             Telegram.WebApp.close();
         });
+
+        // Создание эффекта при нажатии
+        function createTapEffect(x, y) {
+            const effect = document.createElement('div');
+            effect.className = 'tap-effect';
+            effect.style.left = `${x - 10}px`;
+            effect.style.top = `${y - 10}px`;
+            document.body.appendChild(effect);
+
+            // Удаление эффекта после завершения анимации
+            effect.addEventListener('animationend', () => {
+                effect.remove();
+            });
+        }
+
+        // Получаем данные пользователя (опционально)
+        const user = Telegram.WebApp.initDataUnsafe.user;
+        if (user) {
+            console.log("Данные пользователя:", user);
+        }
     </script>
 </body>
 </html>
