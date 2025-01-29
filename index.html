@@ -3,82 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tap Game</title>
+    <title>Тапалка с монетами</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            padding: 20px;
             margin: 0;
+            padding: 0;
             background: #f0f0f0;
+            overflow: hidden;
         }
-        button {
-            padding: 15px 30px;
-            font-size: 20px;
-            background: #007bff;
-            color: white;
+        h1 {
+            color: #333;
+            margin-top: 20px;
+        }
+        #tapButton {
+            padding: 20px 40px;
+            font-size: 24px;
+            background: #ffcc00;
+            color: #333;
             border: none;
-            border-radius: 10px;
-            margin: 10px;
+            border-radius: 50%;
             cursor: pointer;
-            transition: transform 0.1s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 2;
         }
-        button:active {
+        #tapButton:active {
             transform: scale(0.95);
         }
         #score {
-            font-size: 24px;
+            font-size: 28px;
             color: #333;
-            margin: 20px;
+            margin-top: 20px;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .coin {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: url('coin.png') no-repeat center center;
+            background-size: cover;
+            animation: fall linear;
+            z-index: 1;
+        }
+        @keyframes fall {
+            0% { top: -50px; transform: rotate(0deg); }
+            100% { top: 100vh; transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
-    <h1>🔥 MONEY 🔥</h1>
-    <div id="score">0</div>
-    <button id="tapBtn">ТАП!</button>
-    <button id="sendBtn">Отправить счет</button>
+    <h1>Тапалка с монетами</h1>
+    <button id="tapButton">ТАП!</button>
+    <div id="score">Монет: 0</div>
 
-    <!-- Локальные звуки (положите файлы в ту же папку) -->
+    <!-- Звук -->
     <audio id="tapSound" src="tap.mp3"></audio>
-    <audio id="sendSound" src="send.mp3"></audio>
 
     <script>
         // Инициализация Telegram Web App
         Telegram.WebApp.ready();
-        
+
         let score = 0;
-        const tapBtn = document.getElementById('tapBtn');
-        const sendBtn = document.getElementById('sendBtn');
+        const tapButton = document.getElementById('tapButton');
         const scoreDisplay = document.getElementById('score');
         const tapSound = document.getElementById('tapSound');
-        const sendSound = document.getElementById('sendSound');
 
-        // Обработчик тапов
-        tapBtn.addEventListener('click', () => {
+        // Обработчик нажатия на кнопку
+        tapButton.addEventListener('click', (event) => {
+            // Увеличиваем счет
             score++;
-            scoreDisplay.textContent = score;
-            
+            scoreDisplay.textContent = `Монет: ${score}`;
+
             // Воспроизведение звука
             if (tapSound) {
                 tapSound.currentTime = 0;
                 tapSound.play().catch(err => console.log("Ошибка звука:", err));
             }
+
+            // Создаем падающие монеты
+            createCoins(event.clientX, event.clientY);
         });
 
-        // Отправка счета
-        sendBtn.addEventListener('click', () => {
-            // Воспроизведение звука
-            if (sendSound) {
-                sendSound.currentTime = 0;
-                sendSound.play().catch(err => console.log("Ошибка звука:", err));
+        // Функция для создания падающих монет
+        function createCoins(x, y) {
+            for (let i = 0; i < 5; i++) { // Создаем 5 монет
+                const coin = document.createElement('div');
+                coin.className = 'coin';
+                coin.style.left = `${x + Math.random() * 50 - 25}px`; // Случайное смещение по X
+                coin.style.animationDuration = `${Math.random() * 1 + 1}s`; // Случайная скорость падения
+                document.body.appendChild(coin);
+
+                // Удаляем монету после завершения анимации
+                coin.addEventListener('animationend', () => {
+                    coin.remove();
+                });
             }
-
-            // Отправка данных в бота
-            Telegram.WebApp.sendData(JSON.stringify({score: score}));
-            Telegram.WebApp.close();
-        });
+        }
 
         console.log("Mini App инициализирован!");
     </script>
